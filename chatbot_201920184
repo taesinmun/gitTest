@@ -1,8 +1,8 @@
 import pandas as pd
 
-# 챗봇 정의
+# 챗봇 클래스 정의
 class SimpleChatBot:
-    # 챗봇 객체를 초기화하는 메서드, 초기화 시에는 입력된 데이터 파일을 로드함
+    # 챗봇 객체 초기화 메서드
     def __init__(self, filepath):
         self.questions, self.answers = self.load_data(filepath)  # 질문과 답변 데이터 로드
 
@@ -38,7 +38,7 @@ class SimpleChatBot:
                 matrix[i][j] = min([
                     matrix[i - 1][j] + 1,  # 삭제가 필요한 경우 위쪽 수 +1
                     matrix[i][j - 1] + 1,  # 삽입이 필요한 경우 왼쪽 수 +1
-                    matrix[i - 1][j - 1] + cost  # 변경이 필요하면 대각선 수의 +1
+                    matrix[i - 1][j - 1] + cost  # 변경이 필요하면 대각선 수의 + 비용
                 ])
         return matrix[a_len][b_len]  # 최종 거리 반환
 
@@ -54,7 +54,7 @@ class SimpleChatBot:
                 min_distance = distance
                 best_match_index = i
 
-        return self.answers[best_match_index]  # 가장 유사한 질문에 해당하는 답변을 반환
+        return self.answers[best_match_index]  # 가장 유사한 질문(최소거리)에 해당하는 답변 반환
 
 # 데이터 파일경로
 filepath = 'ChatbotData.csv'
