@@ -1,0 +1,71 @@
+import pandas as pd
+
+# 챗봇 정의
+class SimpleChatBot:
+    # 챗봇 객체를 초기화하는 메서드, 초기화 시에는 입력된 데이터 파일을 로드함
+    def __init__(self, filepath):
+        self.questions, self.answers = self.load_data(filepath)  # 질문과 답변 데이터 로드
+
+    # CSV 파일에서 질문, 답변 가져오기
+    def load_data(self, filepath):
+        data = pd.read_csv(filepath)  # CSV 파일 읽어옴
+        questions = data['Q'].tolist()  # 질문을 리스트로 변환
+        answers = data['A'].tolist()  # 답변을 리스트로 변환
+        return questions, answers  # 리스트(질문과 답변) 반환
+
+    # 레벤슈타인 거리계산
+    def calc_distance(self, a, b):
+        if a == b: return 0  # 두 문자열이 같으면 거리 0 
+        a_len = len(a)  # a의 길이
+        b_len = len(b)  # b의 길이
+        if a == "": return b_len  # a가 비어 있으면 거리 b의 길이 반환
+        if b == "": return a_len  # b가 비어 있으면 거리 a의 길이 반환
+        
+        # 거리계산용 2차원 배열 생성 (0으로 초기화)
+        matrix = [[0] * (b_len + 1) for _ in range(a_len + 1)]
+        for i in range(a_len + 1):
+            matrix[i][0] = i  
+        for j in range(b_len + 1):
+            matrix[0][j] = j  
+
+        # 2차원 배열을 채우며 거리 계산
+        # 모든 경우의 수를 반복하여 비교하면, 최종적으로 마지막 수가 비용값이 됨
+        for i in range(1, a_len + 1):
+            ac = a[i - 1]  # a문자의 i번째 
+            for j in range(1, b_len + 1):
+                bc = b[j - 1]  # b문자의 j번째
+                cost = 0 if (ac == bc) else 1  # 값이 같으면 비용 0, 다르면 비용 1
+                matrix[i][j] = min([
+                    matrix[i - 1][j] + 1,  # 삭제가 필요한 경우 위쪽 수 +1
+                    matrix[i][j - 1] + 1,  # 삽입이 필요한 경우 왼쪽 수 +1
+                    matrix[i - 1][j - 1] + cost  # 변경이 필요하면 대각선 수의 +1
+                ])
+        return matrix[a_len][b_len]  # 최종 거리 반환
+
+    # 베스트 응답 찾기
+    def find_best_answer(self, input_sentence):
+        min_distance = float('inf')  # 최소 거리 
+        best_match_index = -1  # 최소거리에 해당하는 인덱스
+
+        # 모든 질문과의 거리 계산하여 최소 거리 찾음
+        for i, question in enumerate(self.questions):
+            distance = self.calc_distance(input_sentence, question)  # 레벤슈타인 거리계산
+            if distance < min_distance:  # 계산된 거리와 min거리 비교
+                min_distance = distance
+                best_match_index = i
+
+        return self.answers[best_match_index]  # 가장 유사한 질문에 해당하는 답변을 반환
+
+# 데이터 파일경로
+filepath = 'ChatbotData.csv'
+
+# 챗봇 생성
+chatbot = SimpleChatBot(filepath)
+
+# '종료' 입력까지 무한루프
+while True:
+    input_sentence = input('You: ')
+    if input_sentence.lower() == '종료':  # '종료' 입력 시 루프 탈출
+        break
+    response = chatbot.find_best_answer(input_sentence)  # 입력문장에 대한 베스트 응답찾기
+    print('Chatbot:', response)  # 응답출력
